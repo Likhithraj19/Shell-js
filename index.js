@@ -1,16 +1,31 @@
 const readline = require("readline");
 const path  = require("node:path");
-// const os = require("os");
+const fs  = require("node:fs");
 
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
 
-// console.log("os.path", os.arch());
+// const PATH = ['/usr/bin/', '/usr/local/bin/', '/bin/'];
+const PATH = (process.env.PATH || "").split(path.delimiter);
 
-// const pathName = path.join('/usr', 'bin');
-// console.log("pathName", pathName);
+function pathFinder(cmd){
+
+  for(const dir of PATH){
+    const fullPath = path.join(dir, cmd);
+
+    if(!fs.existsSync(dir)) continue;
+
+    try{
+      fs.accessSync(fullPath, fs.constants.X_OK);
+      return fullPath;
+    }catch{
+
+    }
+  }
+  return null;
+}
 
 function prompt(){
   rl.question("$ ", (answer) => {
@@ -26,36 +41,18 @@ function prompt(){
     else if(answer.startsWith("type ")){
       const cmd = answer.slice(5).trim();
 
-      const pathName = path.join('/usr', 'bin', `${cmd}`);
-      const validLocal = path.join('/usr', 'local', 'bin', `${cmd}`);
+      const pathName = pathFinder(cmd);
 
-      switch (cmd) {
-        case "echo":
-          console.log("echo is a shell builtin");
-          break;
+      const builtins = ["echo", "exit", "type"];
 
-        case "exit":
-          console.log("exit is a shell builtin");
-          break;
-        
-        case "type":
-          console.log("type is a shell builtin");
-          break;
-         
-        case "grep":
-          console.log(`grep is ${pathName}`);
-          break;
-        
-        case "ls":
-          console.log(`ls is ${pathName}`);
-          break;
-          
-        case "valid_command":
-          console.log(`valid_command is ${validLocal}`);
-          break;
-        
-        default:
-          console.log(`${cmd}: not found`);
+      if(builtins.includes(cmd)){
+        console.log(`${cmd} is a shell builtin`);
+      }
+      else if(pathName){
+          console.log(`${cmd} is ${pathName}`)
+      }
+      else{
+        console.log(`${cmd}: not found`);
       }
     }
     else{
