@@ -1,6 +1,7 @@
 const readline = require("readline");
 const path  = require("node:path");
 const fs  = require("node:fs");
+const { execFile } = require('node:child_process');
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -27,36 +28,78 @@ function pathFinder(cmd){
   return null;
 }
 
-function prompt(){
-  rl.question("$ ", (answer) => {
+function executeExternal(fullPath, args){
+  execFile(fullPath, args, (error, stdout, stderr) => {
+    if(stdout) {
+      process.stdout.write(stdout);
+    }
+    if(stderr){
+      process.stderr.write(stderr);
+    }
+    if(error){
+      // throw error;
+      console.log("Error:", error);
+    }
+  })
+}
 
-    if(answer.toLowerCase() === "exit"){
+function prompt(){
+
+  const builtins = ["echo", "exit", "type"];
+
+  rl.question("$ ", (answer) => {
+    
+    //Remove whitespace from the answer
+    const trimmed = answer.trim();
+
+    if(trimmed === "") return prompt();
+
+    const parts = trimmed.split(' ');           //Gives the array like parts [ 'hello', 'world', 'ai' ]
+    const cmd = parts[0];                       //Gets the first part, hello
+    const args = parts.slice(1);                //Gets except the first part in array like args [ 'world', 'ai' ]
+
+    //Exits the shell
+    if(cmd === "exit"){
       rl.close();
       return;
     }
 
-    if(answer.startsWith("echo ")){
-      console.log(`${answer.slice(5)}`);
+    //Returns the argument after cmd 
+    if(cmd === "echo"){
+      // console.log(`${answer.slice(5)}`);
+      console.log(args.join(" "));
+      // return prompt;
     }
-    else if(answer.startsWith("type ")){
-      const cmd = answer.slice(5).trim();
+    else if(cmd === "type"){
 
-      const pathName = pathFinder(cmd);
+      const target = args[0];
 
-      const builtins = ["echo", "exit", "type"];
-
-      if(builtins.includes(cmd)){
-        console.log(`${cmd} is a shell builtin`);
+      if(!target){
+        prompt();
+        return;
       }
-      else if(pathName){
-          console.log(`${cmd} is ${pathName}`)
+
+      if(builtins.includes(target)){
+        console.log(`${target} is a shell builtin`);
       }
       else{
-        console.log(`${cmd}: not found`);
+        const pathName = pathFinder(target);
+        if(pathName){
+          console.log(`${target} is ${pathName}`)
+        }else{
+          console.log(`${target}: not found`)
+        }
       }
     }
     else{
-      console.log(`${answer}: command not found`);
+      const pathName = pathFinder(cmd);
+
+      if(pathName){
+        executeExternal(pathName, args);
+      }else{
+        console.log(`${answer}: command not found`);
+      }
+      
     }
 
     prompt();
