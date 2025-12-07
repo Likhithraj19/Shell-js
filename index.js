@@ -1,7 +1,8 @@
 const readline = require("readline");
 const path  = require("node:path");
 const fs  = require("node:fs");
-const { execFile } = require('node:child_process');
+// const { execFile } = require('node:child_process');
+const {spawn} = require('node:child_process');
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -28,18 +29,14 @@ function pathFinder(cmd){
   return null;
 }
 
-function executeExternal(fullPath, args){
-  execFile(fullPath, args, (error, stdout, stderr) => {
-    if(stdout) {
-      process.stdout.write(stdout);
-    }
-    if(stderr){
-      process.stderr.write(stderr);
-    }
-    if(error){
-      // throw error;
-      console.log("Error:", error);
-    }
+function executeExternal(fullPath, args, done){
+  const programName = path.basename(fullPath);
+  const child = spawn(fullPath,args, {
+    stdio : 'inherit',
+    argv0 : programName
+  });
+  child.on('close', (code) => {
+    done();
   })
 }
 
@@ -95,7 +92,8 @@ function prompt(){
       const pathName = pathFinder(cmd);
 
       if(pathName){
-        executeExternal(pathName, args);
+        executeExternal(pathName, args, () => prompt());
+        return;
       }else{
         console.log(`${answer}: command not found`);
       }
