@@ -42,7 +42,7 @@ function executeExternal(fullPath, args, done){
 
 function prompt(){
 
-  const builtins = ["echo", "exit", "type"];
+  const builtins = ["echo", "exit", "type", "pwd", "cd"];
 
   rl.question("$ ", (answer) => {
     
@@ -88,6 +88,19 @@ function prompt(){
         }
       }
     }
+    else if(cmd === "pwd"){
+      console.log(process.cwd());
+    }
+    else if(cmd === "cd"){
+      if(args[0].startsWith("/")){
+        const targetPath = args[0];
+        try{
+          process.chdir(targetPath);
+        }catch{
+          console.log(`cd: ${targetPath}: No such file or directory`);
+        }
+      }
+    }
     else{
       const pathName = pathFinder(cmd);
 
@@ -95,7 +108,7 @@ function prompt(){
         executeExternal(pathName, args, () => prompt());
         return;
       }else{
-        console.log(`${answer}: command not found`);
+        console.log(`${cmd}: command not found`);
       }
       
     }
