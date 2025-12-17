@@ -92,11 +92,12 @@ function prompt(){
       console.log(process.cwd());
     }
     else if(cmd === "cd"){
-        const targetPath = args[0];
+        const pathArg = args[0];
+        const targetPath = pathArg === "~" ? process.env.HOME : pathArg;
         try{
           process.chdir(targetPath);
         }catch{
-          console.log(`cd: ${targetPath}: No such file or directory`);
+          console.log(`cd: ${pathArg}: No such file or directory`);
         }
     }
     else{
