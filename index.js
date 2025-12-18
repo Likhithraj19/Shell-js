@@ -63,9 +63,9 @@ function prompt(){
 
     //Returns the argument after cmd 
     if(cmd === "echo"){
-      // console.log(`${answer.slice(5)}`);
-      console.log(args.join(" "));
-      // return prompt;
+      const echoString = args.join(" ");
+      const cleanedString = echoString.replace(/'/g, '');
+      console.log(cleanedString);
     }
     else if(cmd === "type"){
 
