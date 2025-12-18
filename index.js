@@ -40,6 +40,34 @@ function executeExternal(fullPath, args, done){
   })
 }
 
+function parseArgs(input){
+
+  const args = [];
+  let currentArg = "";
+  let inSingleQuote = false;
+
+  for(let i = 0; i < input.length; i++){
+    const char = input[i];
+
+    if(char === "'"){
+      inSingleQuote = !inSingleQuote;
+    }else if(char === ' ' && !inSingleQuote){
+      if(currentArg.length > 0){
+        args.push(currentArg);
+        currentArg = "";
+      }
+    }else{
+      currentArg += char;
+    }
+  }
+
+  if(currentArg.length > 0){
+    args.push(currentArg);
+  }
+
+  return args;
+}
+
 function prompt(){
 
   const builtins = ["echo", "exit", "type", "pwd", "cd"];
@@ -51,7 +79,8 @@ function prompt(){
 
     if(trimmed === "") return prompt();
 
-    const parts = trimmed.split(' ');           //Gives the array like parts [ 'hello', 'world', 'ai' ]
+    //const parts = trimmed.split(' ');           //Gives the array like parts [ 'hello', 'world', 'ai' ]
+    const parts = parseArgs(trimmed);
     const cmd = parts[0];                       //Gets the first part, hello
     const args = parts.slice(1);                //Gets except the first part in array like args [ 'world', 'ai' ]
 
@@ -63,9 +92,7 @@ function prompt(){
 
     //Returns the argument after cmd 
     if(cmd === "echo"){
-      const echoString = args.join(" ");
-      const cleanedString = echoString.replace(/'/g, '');
-      console.log(cleanedString);
+      console.log(args.join(" "));
     }
     else if(cmd === "type"){
 
