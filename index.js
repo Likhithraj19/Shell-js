@@ -46,12 +46,19 @@ function parseArgs(input){
   let currentArg = "";
   let inSingleQuote = false;
   let inDoubleQuote = false;
+  let escaped = false;
 
   for(let i = 0; i < input.length; i++){
     const char = input[i];
 
-   
-    if(char === "'" && !inDoubleQuote){
+   if(escaped){
+    currentArg += char;
+    escaped = false;
+   }
+   else if(char === '\\' && !inSingleQuote && !inDoubleQuote){
+    escaped = true;
+   }
+    else if(char === "'" && !inDoubleQuote){
       inSingleQuote = !inSingleQuote;
     }
      else if(char === '"' && !inSingleQuote) {
