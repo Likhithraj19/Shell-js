@@ -45,13 +45,19 @@ function parseArgs(input){
   const args = [];
   let currentArg = "";
   let inSingleQuote = false;
+  let inDoubleQuote = false;
 
   for(let i = 0; i < input.length; i++){
     const char = input[i];
 
-    if(char === "'"){
+   
+    if(char === "'" && !inDoubleQuote){
       inSingleQuote = !inSingleQuote;
-    }else if(char === ' ' && !inSingleQuote){
+    }
+     else if(char === '"' && !inSingleQuote) {
+      inDoubleQuote = !inDoubleQuote;
+    }
+    else if(char === ' ' && !inSingleQuote && !inDoubleQuote){
       if(currentArg.length > 0){
         args.push(currentArg);
         currentArg = "";
